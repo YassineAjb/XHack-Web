@@ -1,32 +1,62 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class ForgetPasswordScreen extends StatelessWidget {
-  ForgetPasswordScreen({super.key});
+import 'package:webxhack/services/auth_services.dart';
 
+class ForgetPasswordScreen extends StatefulWidget {
+  const ForgetPasswordScreen({super.key});
 
+  @override
+  State<ForgetPasswordScreen> createState() => _ForgetPasswordScreenState();
+}
 
+class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
 
   void _handleSendOtp(BuildContext context, String email) async {
-    // final success = await sendOtpToEmail(email); // backend call if available
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address.')),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-     SnackBar(
-    content: const Text(
-      'If this email is registered, an OTP has been sent.',
-      style: TextStyle(fontSize: 16),
-    ),
-    behavior: SnackBarBehavior.floating, // floats instead of pushing content
-    margin: const EdgeInsets.all(16),     // adds spacing around it
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    duration: const Duration(seconds: 4),
-  ),
-      
-    );
+    try {
+      final response = await AuthService.forgotPassword(email);
 
-    Navigator.pushNamed(context, '/verify-otp');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'If this email is registered, an OTP has been sent.',
+              style: TextStyle(fontSize: 16),
+            ),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+
+        // Navigate after short delay
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Navigator.pushNamed(context, '/verify-otp');
+        });
+      } else {
+        final error = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${error['message'] ?? 'Unknown error'}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Request failed: $e')));
+    }
   }
 
   @override
