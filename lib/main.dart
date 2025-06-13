@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:webxhack/screens/otp_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/forget_password_screen.dart';
+import 'package:webxhack/screens/AuthScreens/otp_screen.dart';
+import 'package:webxhack/screens/AuthScreens/reset_password_screen.dart';
+import 'screens/AuthScreens/login_screen.dart';
+import 'screens/AuthScreens/forget_password_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,8 +20,10 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
-        '/forgot-password': (context) => const ForgetPasswordScreen(),
+        '/forgot-password': (context) => ForgetPasswordScreen(),
         '/verify-otp': (context) => const OtpScreen(),
+        '/reset-password': (context) => const ResetPasswordScreen(),
+
 
       },
     );

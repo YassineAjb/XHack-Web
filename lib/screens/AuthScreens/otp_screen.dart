@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class ForgetPasswordScreen extends StatelessWidget {
-  const ForgetPasswordScreen({super.key});
+class OtpScreen extends StatelessWidget {
+  const OtpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class ForgetPasswordScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Forgot Your Password?',
+                    'Enter OTP Code',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
@@ -34,7 +34,7 @@ class ForgetPasswordScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Enter your email address to reset your password.',
+                    'We sent a 6-digit code to your email.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFF9A9A9A),
@@ -42,22 +42,12 @@ class ForgetPasswordScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
 
-                  // Email field
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: const TextStyle(color: Colors.black87),
-                      filled: true,
-                      fillColor: const Color(0xFFF5F6FA),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
+                  // OTP input
+                  const _OtpFields(),
+
                   const SizedBox(height: 32),
 
-                  // Reset Button
+                  // Verify Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -69,11 +59,12 @@ class ForgetPasswordScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.pushNamed(context, '/verify-otp');
+                        Navigator.pushNamed(context, '/reset-password');
 
+                        // validate and proceed
                       },
                       child: const Text(
-                        'Send Reset Link',
+                        'Verify',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -82,18 +73,15 @@ class ForgetPasswordScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Back to Login
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context); // Go back
+                      // Optional: resend logic
                     },
                     child: const Text(
-                      'Back to Login',
-                      style: TextStyle(
-                        color: Color(0xFF9A9A9A),
-                      ),
+                      'Resend Code',
+                      style: TextStyle(color: Color(0xFF9A9A9A)),
                     ),
                   ),
                 ],
@@ -102,6 +90,68 @@ class ForgetPasswordScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _OtpFields extends StatefulWidget {
+  const _OtpFields();
+
+  @override
+  State<_OtpFields> createState() => _OtpFieldsState();
+}
+
+class _OtpFieldsState extends State<_OtpFields> {
+  final List<FocusNode> _focusNodes =
+      List.generate(6, (_) => FocusNode(), growable: false);
+  final List<TextEditingController> _controllers =
+      List.generate(6, (_) => TextEditingController(), growable: false);
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    for (final node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(6, (index) {
+        return SizedBox(
+          width: 40,
+          child: TextField(
+            controller: _controllers[index],
+            focusNode: _focusNodes[index],
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            maxLength: 1,
+            style: const TextStyle(fontSize: 20),
+            decoration: InputDecoration(
+              counterText: '',
+              filled: true,
+              fillColor: const Color(0xFFF5F6FA),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            onChanged: (value) {
+              if (value.isNotEmpty && index < 5) {
+                FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+              }
+              if (value.isEmpty && index > 0) {
+                FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
+              }
+            },
+          ),
+        );
+      }),
     );
   }
 }
