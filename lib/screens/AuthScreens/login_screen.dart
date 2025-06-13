@@ -1,14 +1,56 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:webxhack/services/auth_services.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final response = await AuthService.login(email, password);
+
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      final token = data['access_token']; // optional, depends on your backend
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login successful!')),
+      );
+      Navigator.pushNamed(context, '/dashboard'); // Update route as needed
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: ${response.body}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final bool isDesktop = MediaQuery.of(context).size.width > 800;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F2FC), // same as dashboard background
+      backgroundColor: const Color(0xFFF3F2FC),
       body: Center(
         child: Container(
           width: isDesktop ? 420 : double.infinity,
@@ -24,7 +66,6 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Title
                   const Text(
                     'Login to Your Account',
                     style: TextStyle(
@@ -38,13 +79,12 @@ class LoginScreen extends StatelessWidget {
                     'Welcome back! Please enter your credentials.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF9A9A9A), // muted subtitle
+                      color: Color(0xFF9A9A9A),
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // Email field
                   TextField(
+                    controller: _emailController,
                     decoration: InputDecoration(
                       labelText: 'Email',
                       labelStyle: const TextStyle(color: Colors.black87),
@@ -57,9 +97,8 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Password field
                   TextField(
+                    controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -73,8 +112,6 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -85,20 +122,20 @@ class LoginScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {},
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      onPressed: _isLoading ? null : _handleLogin,
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Forgot Password
                   TextButton(
                     onPressed: () {
                       Navigator.pushNamed(context, '/forgot-password');

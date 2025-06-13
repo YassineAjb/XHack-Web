@@ -59,6 +59,8 @@ class OtpScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
+                        Navigator.pushNamed(context, '/reset-password');
+
                         // validate and proceed
                       },
                       child: const Text(

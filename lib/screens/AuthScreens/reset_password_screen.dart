@@ -1,32 +1,41 @@
 import 'package:flutter/material.dart';
 
-class ForgetPasswordScreen extends StatelessWidget {
-  ForgetPasswordScreen({super.key});
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({super.key});
 
+  @override
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+}
 
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
 
-  final TextEditingController _emailController = TextEditingController();
+  void _handleResetPassword() {
+    final password = _passwordController.text.trim();
+    final confirm = _confirmController.text.trim();
 
-  void _handleSendOtp(BuildContext context, String email) async {
-    // final success = await sendOtpToEmail(email); // backend call if available
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters.')),
+      );
+      return;
+    }
 
+    if (password != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match.')),
+      );
+      return;
+    }
+
+    // TODO: Send password to backend to reset
     ScaffoldMessenger.of(context).showSnackBar(
-     SnackBar(
-    content: const Text(
-      'If this email is registered, an OTP has been sent.',
-      style: TextStyle(fontSize: 16),
-    ),
-    behavior: SnackBarBehavior.floating, // floats instead of pushing content
-    margin: const EdgeInsets.all(16),     // adds spacing around it
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    duration: const Duration(seconds: 4),
-  ),
-      
+      const SnackBar(content: Text('Password successfully reset.')),
     );
 
-    Navigator.pushNamed(context, '/verify-otp');
+    // Navigate to login
+    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
   }
 
   @override
@@ -51,7 +60,7 @@ class ForgetPasswordScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Forgot Your Password?',
+                    'Reset Password',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
@@ -60,17 +69,33 @@ class ForgetPasswordScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Enter your email address to reset your password.',
+                    'Enter your new password below.',
                     style: TextStyle(fontSize: 14, color: Color(0xFF9A9A9A)),
                   ),
                   const SizedBox(height: 32),
 
-                  // Email field
+                  // New Password
                   TextField(
-                    controller: _emailController,
+                    controller: _passwordController,
+                    obscureText: true,
                     decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: const TextStyle(color: Colors.black87),
+                      labelText: 'New Password',
+                      filled: true,
+                      fillColor: const Color(0xFFF5F6FA),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Confirm Password
+                  TextField(
+                    controller: _confirmController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
                       filled: true,
                       fillColor: const Color(0xFFF5F6FA),
                       border: OutlineInputBorder(
@@ -81,7 +106,7 @@ class ForgetPasswordScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
 
-                  // Reset Button
+                  // Confirm Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -92,30 +117,15 @@ class ForgetPasswordScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        final email = _emailController.text.trim();
-                        _handleSendOtp(context, email);
-                      },
+                      onPressed: _handleResetPassword,
                       child: const Text(
-                        'Send Reset Link',
+                        'Reset Password',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Back to Login
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Go back
-                    },
-                    child: const Text(
-                      'Back to Login',
-                      style: TextStyle(color: Color(0xFF9A9A9A)),
                     ),
                   ),
                 ],
