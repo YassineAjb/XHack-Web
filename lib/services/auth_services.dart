@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
+import 'package:http/http.dart' as http;
 
 class AuthService {
   /// Login

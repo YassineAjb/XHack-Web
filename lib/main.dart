@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:webxhack/screens/AdminDashboard/dashboard_screen.dart';
 import 'package:webxhack/screens/AuthScreens/otp_screen.dart';
 import 'package:webxhack/screens/AuthScreens/reset_password_screen.dart';
-import 'package:webxhack/screens/DoctorScreens/home_screen.dart';
+import 'package:webxhack/screens/DoctorScreens/home_doctor_screen.dart';
+import 'package:webxhack/screens/DoctorScreens/dashboard_screen.dart';
 import 'screens/AuthScreens/login_screen.dart';
 import 'screens/AuthScreens/forget_password_screen.dart';
 
@@ -27,6 +28,8 @@ class MyApp extends StatelessWidget {
         '/reset-password': (context) => const ResetPasswordScreen(),
         '/home-doctor': (context) => const OrganMatchingPage(),
         '/dashboard': (context) => const DashboardScreen(),
+        '/matching-page': (context) => const OrganMatchingPage(),
+        '/organs-patients': (context) => const DashboardDoctor(),
       },
     );
   }
