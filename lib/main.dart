@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:webxhack/screens/otp_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/forget_password_screen.dart';
+import 'package:webxhack/screens/AuthScreens/otp_screen.dart';
+import 'package:webxhack/screens/DoctorScreens/home_screen.dart';
+import 'screens/AuthScreens/login_screen.dart';
+import 'screens/AuthScreens/forget_password_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,11 +17,12 @@ class MyApp extends StatelessWidget {
       title: 'Login App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: '/',
+      initialRoute: '/home-doctor',
       routes: {
         '/': (context) => const LoginScreen(),
         '/forgot-password': (context) => const ForgetPasswordScreen(),
         '/verify-otp': (context) => const OtpScreen(),
+        '/home-doctor': (context) => const OrganMatchingPage(),
 
       },
     );
