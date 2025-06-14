@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:webxhack/services/auth_services.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -11,36 +13,47 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
 
-  void _handleResetPassword() {
+  bool _isLoading = false;
+
+  void _handleResetPassword(String resetToken) async {
     final password = _passwordController.text.trim();
     final confirm = _confirmController.text.trim();
 
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters.')),
-      );
+      _showMessage('Password must be at least 6 characters.');
       return;
     }
 
     if (password != confirm) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match.')),
-      );
+      _showMessage('Passwords do not match.');
       return;
     }
 
-    // TODO: Send password to backend to reset
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password successfully reset.')),
-    );
+    setState(() => _isLoading = true);
 
-    // Navigate to login
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    final response = await AuthService.resetPassword(password, resetToken);
+
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
+      _showMessage('Password successfully reset.');
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    } else {
+      final body = jsonDecode(response.body);
+      _showMessage(body['message'] ?? 'Reset failed');
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isDesktop = MediaQuery.of(context).size.width > 800;
+    final resetToken = ModalRoute.of(context)!.settings.arguments as String;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F2FC),
@@ -74,7 +87,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // New Password
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
@@ -89,8 +101,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Confirm Password
                   TextField(
                     controller: _confirmController,
                     obscureText: true,
@@ -105,8 +115,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // Confirm Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -117,15 +125,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: _handleResetPassword,
-                      child: const Text(
-                        'Reset Password',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      onPressed: _isLoading ? null : () => _handleResetPassword(resetToken),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Reset Password',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                     ),
                   ),
                 ],

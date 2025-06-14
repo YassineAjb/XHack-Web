@@ -1,7 +1,52 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:webxhack/services/auth_services.dart';
 
-class OtpScreen extends StatelessWidget {
+class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
+
+  @override
+  State<OtpScreen> createState() => _OtpScreenState();
+}
+
+class _OtpScreenState extends State<OtpScreen> {
+  final List<TextEditingController> _controllers =
+      List.generate(6, (_) => TextEditingController());
+
+  bool _isVerifying = false;
+
+  Future<void> _verifyOtp() async {
+    final code = _controllers.map((c) => c.text).join();
+    if (code.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the full 6-digit OTP.')),
+      );
+      return;
+    }
+
+    setState(() => _isVerifying = true);
+
+    try {
+      final response = await AuthService.verifyOtp(code);
+      setState(() => _isVerifying = false);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final result = jsonDecode(response.body);
+        final resetToken = result['resetToken'];
+
+        Navigator.pushNamed(context, '/reset-password', arguments: resetToken);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid or expired OTP.')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isVerifying = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Verification failed: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +86,8 @@ class OtpScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // OTP input
-                  const _OtpFields(),
-
+                  _buildOtpFields(),
                   const SizedBox(height: 32),
-
-                  // Verify Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -58,26 +98,23 @@ class OtpScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/reset-password');
-
-                        // validate and proceed
-                      },
-                      child: const Text(
-                        'Verify',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      onPressed: _isVerifying ? null : _verifyOtp,
+                      child: _isVerifying
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Verify',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () {
-                      // Optional: resend logic
+                      // TODO: Add resend logic
                     },
                     child: const Text(
                       'Resend Code',
@@ -92,34 +129,8 @@ class OtpScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _OtpFields extends StatefulWidget {
-  const _OtpFields();
-
-  @override
-  State<_OtpFields> createState() => _OtpFieldsState();
-}
-
-class _OtpFieldsState extends State<_OtpFields> {
-  final List<FocusNode> _focusNodes =
-      List.generate(6, (_) => FocusNode(), growable: false);
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController(), growable: false);
-
-  @override
-  void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    for (final node in _focusNodes) {
-      node.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildOtpFields() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(6, (index) {
@@ -127,7 +138,6 @@ class _OtpFieldsState extends State<_OtpFields> {
           width: 40,
           child: TextField(
             controller: _controllers[index],
-            focusNode: _focusNodes[index],
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 1,
@@ -143,10 +153,9 @@ class _OtpFieldsState extends State<_OtpFields> {
             ),
             onChanged: (value) {
               if (value.isNotEmpty && index < 5) {
-                FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
-              }
-              if (value.isEmpty && index > 0) {
-                FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
+                FocusScope.of(context).nextFocus();
+              } else if (value.isEmpty && index > 0) {
+                FocusScope.of(context).previousFocus();
               }
             },
           ),

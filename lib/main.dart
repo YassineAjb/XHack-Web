@@ -5,6 +5,7 @@ import 'package:webxhack/screens/AuthScreens/reset_password_screen.dart';
 import 'package:webxhack/screens/DoctorScreens/council_screen.dart';
 import 'package:webxhack/screens/DoctorScreens/home_doctor_screen.dart';
 import 'package:webxhack/screens/DoctorScreens/dashboard_screen.dart';
+import 'package:webxhack/screens/DoctorScreens/patient_screen.dart';
 import 'screens/AuthScreens/login_screen.dart';
 import 'screens/AuthScreens/forget_password_screen.dart';
 
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
       title: 'App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: '/admin-dash',
+      initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
         '/forgot-password': (context) => ForgetPasswordScreen(),
@@ -29,8 +30,9 @@ class MyApp extends StatelessWidget {
         '/reset-password': (context) => const ResetPasswordScreen(),
         '/matching-page': (context) => const OrganMatchingPage(),
         '/organs-patients-Page': (context) => const DashboardDoctor(),
-        '/med-council': (context) => const MedicalCouncilScreen(),
+        '/med-council': (context) => const MedicalCouncilScreen(doctorId: '',),
         '/admin-dash': (context) => const AdminDashboard(),
+        '/patient': (context) => const PatientsListScreen(),
 
       },
     );

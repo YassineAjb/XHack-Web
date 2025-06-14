@@ -219,7 +219,7 @@ TextButton(
   onPressed: () {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => MedicalCouncilScreen()),
+      MaterialPageRoute(builder: (context) => MedicalCouncilScreen(doctorId: '',)),
     );
   },
   style: TextButton.styleFrom(
