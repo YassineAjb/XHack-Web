@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:webxhack/model/organ_model.dart';
+import 'package:webxhack/model/patient_model.dart';
 import 'package:webxhack/screens/DoctorScreens/dashboard_screen.dart';
+import 'package:webxhack/services/match_services.dart';
 import 'package:webxhack/services/organ_services.dart';
 
 class OrganMatchingPage extends StatefulWidget {
@@ -43,226 +45,42 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
     }
   }
 
-  // Sample patient data that matches each organ
-  final List<List<Map<String, dynamic>>> matchedPatients = [
-    // Patients for KID-123 (A+)
-    [
-      {
-        'name': 'John Smith',
-        'age': 42,
-        'bloodType': 'A+',
-        'waitingTime': '1y 3m',
-        'priority': 'High',
-        'location': 'Boston',
-      },
-      {
-        'name': 'Emma Wilson',
-        'age': 35,
-        'bloodType': 'A+',
-        'waitingTime': '2y 1m',
-        'priority': 'Critical',
-        'location': 'Philadelphia',
-      },
-      {
-        'name': 'Robert Johnson',
-        'age': 58,
-        'bloodType': 'A+',
-        'waitingTime': '8m',
-        'priority': 'Medium',
-        'location': 'New York',
-      },
-      {
-        'name': 'Sarah Davis',
-        'age': 29,
-        'bloodType': 'A+',
-        'waitingTime': '1y 6m',
-        'priority': 'High',
-        'location': 'Hartford',
-      },
-      {
-        'name': 'Michael Brown',
-        'age': 63,
-        'bloodType': 'A+',
-        'waitingTime': '3y 2m',
-        'priority': 'Critical',
-        'location': 'Albany',
-      },
-    ],
-    // Patients for KID-456 (O-)
-    [
-      {
-        'name': 'David Miller',
-        'age': 47,
-        'bloodType': 'O-',
-        'waitingTime': '1y 0m',
-        'priority': 'High',
-        'location': 'Chicago',
-      },
-      {
-        'name': 'Jessica Lee',
-        'age': 31,
-        'bloodType': 'O-',
-        'waitingTime': '1y 8m',
-        'priority': 'Critical',
-        'location': 'Detroit',
-      },
-      {
-        'name': 'Daniel Wilson',
-        'age': 52,
-        'bloodType': 'O-',
-        'waitingTime': '2y 3m',
-        'priority': 'High',
-        'location': 'Minneapolis',
-      },
-      {
-        'name': 'Olivia Martin',
-        'age': 25,
-        'bloodType': 'O-',
-        'waitingTime': '6m',
-        'priority': 'Medium',
-        'location': 'Indianapolis',
-      },
-      {
-        'name': 'James Anderson',
-        'age': 60,
-        'bloodType': 'O-',
-        'waitingTime': '3y 5m',
-        'priority': 'Critical',
-        'location': 'Milwaukee',
-      },
-    ],
-    // Patients for KID-789 (B+)
-    [
-      {
-        'name': 'William Taylor',
-        'age': 44,
-        'bloodType': 'B+',
-        'waitingTime': '1y 1m',
-        'priority': 'High',
-        'location': 'Los Angeles',
-      },
-      {
-        'name': 'Sophia White',
-        'age': 38,
-        'bloodType': 'B+',
-        'waitingTime': '1y 9m',
-        'priority': 'Critical',
-        'location': 'San Diego',
-      },
-      {
-        'name': 'Benjamin Clark',
-        'age': 55,
-        'bloodType': 'B+',
-        'waitingTime': '2y 0m',
-        'priority': 'High',
-        'location': 'Phoenix',
-      },
-      {
-        'name': 'Ava Rodriguez',
-        'age': 27,
-        'bloodType': 'B+',
-        'waitingTime': '7m',
-        'priority': 'Medium',
-        'location': 'Las Vegas',
-      },
-      {
-        'name': 'Mason Martinez',
-        'age': 62,
-        'bloodType': 'B+',
-        'waitingTime': '3y 1m',
-        'priority': 'Critical',
-        'location': 'Denver',
-      },
-    ],
-    // Patients for KID-101 (AB+)
-    [
-      {
-        'name': 'Ethan Hernandez',
-        'age': 41,
-        'bloodType': 'AB+',
-        'waitingTime': '1y 2m',
-        'priority': 'High',
-        'location': 'Miami',
-      },
-      {
-        'name': 'Isabella Gonzalez',
-        'age': 33,
-        'bloodType': 'AB+',
-        'waitingTime': '1y 7m',
-        'priority': 'Critical',
-        'location': 'Orlando',
-      },
-      {
-        'name': 'Alexander Lopez',
-        'age': 56,
-        'bloodType': 'AB+',
-        'waitingTime': '2y 2m',
-        'priority': 'High',
-        'location': 'Atlanta',
-      },
-      {
-        'name': 'Mia Perez',
-        'age': 24,
-        'bloodType': 'AB+',
-        'waitingTime': '5m',
-        'priority': 'Medium',
-        'location': 'Charlotte',
-      },
-      {
-        'name': 'Charlotte Sanchez',
-        'age': 61,
-        'bloodType': 'AB+',
-        'waitingTime': '3y 3m',
-        'priority': 'Critical',
-        'location': 'Tampa',
-      },
-    ],
-    // Patients for KID-112 (A-)
-    [
-      {
-        'name': 'Liam Ramirez',
-        'age': 45,
-        'bloodType': 'A-',
-        'waitingTime': '1y 4m',
-        'priority': 'High',
-        'location': 'Seattle',
-      },
-      {
-        'name': 'Amelia Flores',
-        'age': 32,
-        'bloodType': 'A-',
-        'waitingTime': '1y 5m',
-        'priority': 'Critical',
-        'location': 'Portland',
-      },
-      {
-        'name': 'Noah Washington',
-        'age': 54,
-        'bloodType': 'A-',
-        'waitingTime': '2y 4m',
-        'priority': 'High',
-        'location': 'Vancouver',
-      },
-      {
-        'name': 'Evelyn Adams',
-        'age': 26,
-        'bloodType': 'A-',
-        'waitingTime': '4m',
-        'priority': 'Medium',
-        'location': 'Boise',
-      },
-      {
-        'name': 'Lucas Campbell',
-        'age': 64,
-        'bloodType': 'A-',
-        'waitingTime': '3y 4m',
-        'priority': 'Critical',
-        'location': 'Spokane',
-      },
-    ],
-  ];
+  Map<String, List<Patient>> matchedPatients = {};
+
+  Future<void> fetchMatchedPatients(String organId) async {
+    try {
+      final patients = await MatchService().getPatientsByOrganLastRound(
+        organId,
+      );
+      print("---------------------------------------------");
+      print("patients list : ${patients.first.id}");
+      print("---------------------------------------------");
+
+      setState(() {
+        matchedPatients[organId] = patients;
+      });
+    } catch (e) {
+      print('Error fetching matched patients for $organId: $e');
+    }
+  }
+
+  // void fetchMatchedPatients(String organId) async {
+  //   try {
+  //     final matches = await MatchService().getMatchByOrganLastRound(organId);
+  //     setState(() {
+  //       matchedPatients[organId] = List<Map<String, dynamic>>.from(matches as Iterable);
+  //       print('aaasba');
+  //       print(matchedPatients);
+  //     });
+  //   } catch (e) {
+  //     print('Error fetching matched patients for $organId: $e');
+  //   }
+  // }
 
   void _showMatchingPatientsDialog(BuildContext context, int organIndex) {
+    final organ = availableOrgans[organIndex];
+    final patients = matchedPatients[organ.id] ?? [];
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -278,6 +96,7 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Header
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -301,26 +120,31 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        'Matching Patients for ', //${availableOrgans[organIndex]['id']}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          'Matching Patients for Organ ${organ.id} | Blood: ${organ.bloodType}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
+                // Data Table
                 SizedBox(
                   width: double.maxFinite,
                   child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
                     child: DataTable(
                       showCheckboxColumn: false,
                       columns: const [
                         DataColumn(
                           label: Text(
-                            'Name',
+                            'Cin',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -342,30 +166,51 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
+                        DataColumn(
+                          label: Text(
+                            'Organ HLA',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Ischemia Time (hr)',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text(
+                            'Distance (km)',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ],
                       rows:
-                          matchedPatients[organIndex].map((patient) {
+                          patients.map((patient) {
                             return DataRow(
                               onSelectChanged: (_) {
                                 _showPatientDetailsDialog(
                                   context,
                                   patient,
-                                  availableOrgans[organIndex],
+                                  organ,
                                 );
                               },
                               cells: [
                                 DataCell(
-                                  Text(patient['name']),
-                                  onTap: () {
-                                    _showPatientDetailsDialog(
-                                      context,
-                                      patient,
-                                      availableOrgans[organIndex],
-                                    );
-                                  },
-                                ),
-                                DataCell(Text(patient['age'].toString())),
-                                DataCell(Text(patient['bloodType'])),
+                                  Text(
+                                    patient.isUsed
+                                        ? (patient.cin != null &&
+                                                patient.cin!
+                                                    .toString()
+                                                    .trim()
+                                                    .isNotEmpty
+                                            ? patient.cin!.toString()
+                                            : '12345678')
+                                        : 'Unknown cin',
+                                  ),
+                                ), // <-- this is the missing 1st cell
+                                DataCell(Text(patient.recipientAge.toString())),
+                                DataCell(Text(patient.recipientBloodType)),
                                 DataCell(
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -374,20 +219,20 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: _getPriorityColor(
-                                        patient['priority'],
+                                        patient.urgency.toString(),
                                       ).withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: _getPriorityColor(
-                                          patient['priority'],
+                                          patient.urgency.toString(),
                                         ).withOpacity(0.3),
                                       ),
                                     ),
                                     child: Text(
-                                      patient['priority'],
+                                      patient.urgency.toString(),
                                       style: TextStyle(
                                         color: _getPriorityColor(
-                                          patient['priority'],
+                                          patient.urgency.toString(),
                                         ),
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -395,12 +240,19 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                                     ),
                                   ),
                                 ),
+                                DataCell(Text(organ.hlaLocus ?? 'N/A')),
+                                DataCell(
+                                  Text('${organ.coldIschemiaTimeHr ?? 'N/A'}'),
+                                ),
+                                DataCell(Text('${organ.distanceKm ?? 'N/A'}')),
                               ],
                             );
                           }).toList(),
                     ),
                   ),
                 ),
+
+                // Close Button
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -426,7 +278,7 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
 
   void _showPatientDetailsDialog(
     BuildContext context,
-    Map<String, dynamic> patient,
+    Patient patient,
     Organ organ,
   ) {
     showDialog(
@@ -471,7 +323,7 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          "Patient: ${patient['name']}",
+                          "Patient: unkown", //${patient['name']}",
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -499,15 +351,24 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                           ),
 
                           const Divider(),
-                          _buildDetailRow("Patient Name", patient['name']),
-                          _buildDetailRow("Age", patient['age'].toString()),
-                          _buildDetailRow("Blood Type", patient['bloodType']),
+                          // _buildDetailRow("Patient Name", patient['name']),
                           _buildDetailRow(
-                            "Waiting Time",
-                            patient['waitingTime'],
+                            "Age",
+                            patient.recipientAge.toString(),
                           ),
-                          _buildDetailRow("Priority", patient['priority']),
-                          _buildDetailRow("Location", patient['location']),
+                          _buildDetailRow(
+                            "Blood Type",
+                            patient.recipientBloodType,
+                          ),
+                          // _buildDetailRow(
+                          //   "Waiting Time",
+                          //   patient['waitingTime'],
+                          // ),
+                          _buildDetailRow(
+                            "Priority",
+                            patient.urgency.toString(),
+                          ),
+                          _buildDetailRow("Location", "unkown"),
                           const SizedBox(height: 20),
                           const Text(
                             "Compatibility Analysis:",
@@ -538,7 +399,7 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                             backgroundColor: accentGreen,
                             foregroundColor: Colors.white,
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.of(context).pop();
                             _showSurgeryConfirmationDialog(
                               context,
@@ -562,7 +423,7 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
 
   void _showSurgeryConfirmationDialog(
     BuildContext context,
-    Map<String, dynamic> patient,
+    Patient patient,
     Organ organ,
   ) {
     showDialog(
@@ -619,7 +480,9 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Confirm surgery for ${patient['name']}?"),
+                      Text(
+                        "Confirm surgery for unkown ",
+                      ), //${patient['name']}?"),
                       const SizedBox(height: 8),
                       Text(
                         "Organ: ${organ.id ?? "N/A"} (${organ.bloodType})",
@@ -654,10 +517,15 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                         onPressed: () {
                           _scheduleSurgery(patient, organ);
                           Navigator.of(context).pop();
+                          _showKnowenPatientDetailsDialog(
+                            context,
+                            patient,
+                            organ,
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'Surgery scheduled for ${patient['name']}',
+                                'Surgery scheduled for patient name', //${patient['name']}',
                               ),
                               backgroundColor: accentGreen,
                               behavior: SnackBarBehavior.floating,
@@ -681,10 +549,11 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
     );
   }
 
-  void _scheduleSurgery(Map<String, dynamic> patient, Organ organ) {
-    // Implement your actual surgery scheduling logic here
+  Future<void> _scheduleSurgery(Patient patient, Organ organ) async {
+    final result = await MatchService().submitMatch(organ.id!, patient.id!);
+
     print('Surgery scheduled:');
-    print('Patient: ${patient['name']}');
+    //print('Patient: ${patient['name']}');
     print('Organ: ${organ.id}');
   }
 
@@ -763,8 +632,16 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
                     itemCount: availableOrgans.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
-                        onTap:
-                            () => _showMatchingPatientsDialog(context, index),
+                        // onTap:
+                        //     () => _showMatchingPatientsDialog(context, index),
+                        onTap: () async {
+                          final organId = availableOrgans[index].id;
+                          if (organId != null) {
+                            await fetchMatchedPatients(organId);
+                            _showMatchingPatientsDialog(context, index);
+                          }
+                        },
+
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -1084,6 +961,135 @@ class _OrganMatchingPageState extends State<OrganMatchingPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showKnowenPatientDetailsDialog(
+    BuildContext context,
+    Patient patient,
+    Organ organ,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: primaryBlue,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Image.network(
+                            'https://cdn-icons-png.flaticon.com/512/2922/2922506.png',
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          "Patient:",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailRow("Patient", patient.cin.toString()),
+                          _buildDetailRow("Organ ID", organ.id ?? "N/A"),
+                          _buildDetailRow(
+                            "Donor Age",
+                            organ.donorAge.toString(),
+                          ),
+                          _buildDetailRow("Blood Type", organ.bloodType),
+                          _buildDetailRow(
+                            "Distance (km)",
+                            organ.distanceKm.toStringAsFixed(1),
+                          ),
+
+                          const Divider(),
+                          // _buildDetailRow("Patient Name", patient['name']),
+                          _buildDetailRow(
+                            "Age",
+                            patient.recipientAge.toString(),
+                          ),
+                          _buildDetailRow(
+                            "Blood Type",
+                            patient.recipientBloodType,
+                          ),
+                          // _buildDetailRow(
+                          //   "Waiting Time",
+                          //   patient['waitingTime'],
+                          // ),
+                          _buildDetailRow(
+                            "Priority",
+                            patient.urgency.toString(),
+                          ),
+                          _buildDetailRow("Location", "unkown"),
+                          const SizedBox(height: 20),
+                          const Text(
+                            "Compatibility Analysis:",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          _buildDetailRow("Blood Type Match", "Perfect Match"),
+                          _buildDetailRow("Distance", "250 km"),
+                          _buildDetailRow("Success Probability", "92%"),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 8.0,
+                            ),
+                            child: Text(
+                              "NB: this match will be removed from the available system matches",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

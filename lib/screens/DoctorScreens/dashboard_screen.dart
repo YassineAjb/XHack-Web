@@ -1,10 +1,12 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:webxhack/model/organ_model.dart';
+import 'package:webxhack/model/patient_model.dart';
 import 'package:webxhack/screens/DoctorScreens/home_doctor_screen.dart';
+import 'package:webxhack/services/organ_services.dart';
+import 'package:webxhack/services/patient_services.dart';
 
 class DashboardDoctor extends StatefulWidget {
-  const DashboardDoctor({super.key,this.onSearchChanged,});
+  const DashboardDoctor({super.key, this.onSearchChanged});
 
   final ValueChanged<String>? onSearchChanged;
 
@@ -12,19 +14,40 @@ class DashboardDoctor extends StatefulWidget {
   State<DashboardDoctor> createState() => _StaffHomePageState();
 }
 
-class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStateMixin {
-
-    // Add these new variables at the top of your state class with other variables
+class _StaffHomePageState extends State<DashboardDoctor>
+    with TickerProviderStateMixin {
+  // Add these new variables at the top of your state class with other variables
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _searchController = TextEditingController();
-  bool _showSearch = false;
+  final TextEditingController _donorAgeController = TextEditingController();
+  final TextEditingController _bloodTypeController = TextEditingController();
+  final TextEditingController _hlaLocusController = TextEditingController();
+  final TextEditingController _coldIschemiaTimeController =
+      TextEditingController();
+  final TextEditingController _storageTempController = TextEditingController();
+  final TextEditingController _preservationFluidController =
+      TextEditingController();
+  final TextEditingController _warmIschemiaTimeController =
+      TextEditingController();
+  final TextEditingController _perfusionFlowRateController =
+      TextEditingController();
+  final TextEditingController _perfusionPressureController =
+      TextEditingController();
+  final TextEditingController _lactateLevelController = TextEditingController();
+  final TextEditingController _timeToPerfusionStartController =
+      TextEditingController();
+  final TextEditingController _distanceKmController = TextEditingController();
+  final _hla1Controller = TextEditingController();
+  final _hla2Controller = TextEditingController();
+  final _hla3Controller = TextEditingController();
 
+  bool _showSearch = false;
 
   int _currentTabIndex = 0;
   bool _showLists = true;
   late AnimationController _toggleAnimationController;
   late Animation<double> _toggleAnimation;
-  
+
   // Enhanced color scheme
   static const Color primaryBlue = Color(0xFF1E3A8A);
   static const Color lightBlue = Color(0xFF3B82F6);
@@ -33,43 +56,72 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
   static const Color lightGray = Color(0xFFF8FAFC);
   static const Color mediumGray = Color(0xFF64748B);
   static const Color darkGray = Color(0xFF1E293B);
-  
-  // Sample data
-  final List<Map<String, dynamic>> _organs = [
-    {'id': 'KID-001', 'type': 'Kidney', 'bloodType': 'A+', 'status': 'Available', 'donor': 'Anonymous', 'location': 'OR-1'},
-    {'id': 'LIV-002', 'type': 'Liver', 'bloodType': 'O-', 'status': 'Reserved', 'donor': 'Anonymous', 'location': 'OR-2'},
-    {'id': 'HRT-003', 'type': 'Heart', 'bloodType': 'B+', 'status': 'Available', 'donor': 'Anonymous', 'location': 'OR-3'},
-    {'id': 'LNG-004', 'type': 'Lung', 'bloodType': 'AB+', 'status': 'In Transit', 'donor': 'Anonymous', 'location': 'Transport'},
-  ];
 
-  final List<Map<String, dynamic>> _patients = [
-    {'id': 'PAT-001', 'name': 'John Smith', 'bloodType': 'A+', 'waitingSince': '2023-01-15', 'priority': 'High', 'organNeeded': 'Kidney'},
-    {'id': 'PAT-002', 'name': 'Sarah Johnson', 'bloodType': 'O-', 'waitingSince': '2023-02-20', 'priority': 'Critical', 'organNeeded': 'Liver'},
-    {'id': 'PAT-003', 'name': 'Michael Brown', 'bloodType': 'B+', 'waitingSince': '2023-03-10', 'priority': 'Medium', 'organNeeded': 'Heart'},
-    {'id': 'PAT-004', 'name': 'Emily Davis', 'bloodType': 'AB+', 'waitingSince': '2023-04-05', 'priority': 'High', 'organNeeded': 'Lung'},
-  ];
+  List<Organ> _organs = [];
+  bool _isLoading = true;
+
+  List<Patient> _patients = [];
+
+  void _loadPatients() async {
+    try {
+      final patients = await PatientService().getAllPatients();
+      setState(() {
+        _patients = patients;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading patients: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   // Form controllers
   final TextEditingController _organIdController = TextEditingController();
   final TextEditingController _organTypeController = TextEditingController();
-  final TextEditingController _organBloodTypeController = TextEditingController();
+  final TextEditingController _organBloodTypeController =
+      TextEditingController();
   final TextEditingController _patientNameController = TextEditingController();
-  final TextEditingController _patientBloodTypeController = TextEditingController();
+  final TextEditingController _patientBloodTypeController =
+      TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _fetchOrgans();
+    _loadPatients();
+
     _toggleAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
     _toggleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _toggleAnimationController, curve: Curves.easeInOut),
+      CurvedAnimation(
+        parent: _toggleAnimationController,
+        curve: Curves.easeInOut,
+      ),
     );
+  }
+
+  void _fetchOrgans() async {
+    try {
+      final organs = await OrganService().getAllOrgans();
+      setState(() {
+        _organs = organs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error fetching organs: $e')));
+    }
   }
 
   @override
   void dispose() {
+    _hla1Controller.dispose();
+    _hla2Controller.dispose();
+    _hla3Controller.dispose();
     _toggleAnimationController.dispose();
     _organIdController.dispose();
     _organTypeController.dispose();
@@ -111,11 +163,7 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
           end: Alignment.bottomRight,
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: SafeArea(
@@ -126,7 +174,10 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -138,7 +189,11 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
                 child: const CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.medical_services_rounded, color: primaryBlue, size: 26),
+                  child: Icon(
+                    Icons.medical_services_rounded,
+                    color: primaryBlue,
+                    size: 26,
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -147,7 +202,9 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _showLists ? 'Medical Dashboard' : 'Add ${_currentTabIndex == 0 ? 'Organ' : 'Patient'}',
+                      _showLists
+                          ? 'Medical Dashboard'
+                          : 'Add ${_currentTabIndex == 0 ? 'Organ' : 'Patient'}',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -168,7 +225,12 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
               // New TextButton added here
               TextButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => OrganMatchingPage()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrganMatchingPage(),
+                    ),
+                  );
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
@@ -176,10 +238,7 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
                 ),
                 child: const Text(
                   'Matching System',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
               ),
               TextButton(
@@ -192,20 +251,20 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
                 ),
                 child: const Text(
                   'Organs/Patiens',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
               ),
               //const SizedBox(width: 8),
               // Right side - Responsive spacer
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final spacerWidth = constraints.maxWidth * 0.2; // 20% of available width
-                return SizedBox(width: spacerWidth.clamp(8, 200)); // Min 100, max 200
-              },
-            ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final spacerWidth =
+                      constraints.maxWidth * 0.2; // 20% of available width
+                  return SizedBox(
+                    width: spacerWidth.clamp(8, 200),
+                  ); // Min 100, max 200
+                },
+              ),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.1),
@@ -213,7 +272,11 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
                   border: Border.all(color: Colors.white.withOpacity(0.2)),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 22),
+                  icon: const Icon(
+                    Icons.logout_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                   onPressed: _logout,
                   tooltip: 'Logout',
                 ),
@@ -233,19 +296,27 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
           _buildStatCard(
             icon: Icons.medical_services_rounded,
             title: 'Available Organs',
-            value: _organs.where((o) => o['status'] == 'Available').length.toString(),
-            subtitle: '${_organs.where((o) => o['status'] == 'Reserved').length} Reserved',
+            value: _organs.where((o) => o.isUsed == false).length.toString(),
+            subtitle:
+                '${_organs.where((o) => o.isUsed == true).length} Reserved',
             color: accentGreen,
-            gradient: [accentGreen.withOpacity(0.1), accentGreen.withOpacity(0.05)],
+            gradient: [
+              accentGreen.withOpacity(0.1),
+              accentGreen.withOpacity(0.05),
+            ],
           ),
           const SizedBox(width: 16),
           _buildStatCard(
             icon: Icons.people_rounded,
             title: 'Waiting Patients',
             value: _patients.length.toString(),
-            subtitle: '${_patients.where((p) => p['priority'] == 'Critical').length} Critical',
+            subtitle:
+                '${_patients.where((p) => p.urgency == 'Critical').length} Critical',
             color: warningOrange,
-            gradient: [warningOrange.withOpacity(0.1), warningOrange.withOpacity(0.05)],
+            gradient: [
+              warningOrange.withOpacity(0.1),
+              warningOrange.withOpacity(0.05),
+            ],
           ),
         ],
       ),
@@ -264,7 +335,11 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white, width: 1),
           boxShadow: [
@@ -328,16 +403,15 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
       margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          Row(
-            children: [
-              _buildToggleButton(),
-              const Spacer(),
-            ],
-          ),
+          Row(children: [_buildToggleButton(), const Spacer()]),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildTabButton('Organ Management', Icons.medical_services_rounded, 0),
+              _buildTabButton(
+                'Organ Management',
+                Icons.medical_services_rounded,
+                0,
+              ),
               const SizedBox(width: 12),
               _buildTabButton('Patient Registry', Icons.people_rounded, 1),
             ],
@@ -347,122 +421,128 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
     );
   }
 
-Widget _buildToggleButton() {
-  return Row(
-    mainAxisSize: MainAxisSize.min, // Makes the row take minimum space
-    children: [
-      // Your existing toggle button
-      Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Material(
-          borderRadius: BorderRadius.circular(14),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                colors: _showLists 
-                    ? [accentGreen, accentGreen.withOpacity(0.8)]
-                    : [lightBlue, lightBlue.withOpacity(0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+  Widget _buildToggleButton() {
+    return Row(
+      mainAxisSize: MainAxisSize.min, // Makes the row take minimum space
+      children: [
+        // Your existing toggle button
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                setState(() {
-                  _showLists = !_showLists;
-                  if (_showLists) {
-                    _toggleAnimationController.reverse();
-                  } else {
-                    _toggleAnimationController.forward();
-                    _clearForms();
-                  }
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        _showLists ? Icons.add_circle_rounded : Icons.list_alt_rounded,
-                        color: Colors.white,
-                        size: 20,
-                        key: ValueKey(_showLists),
+            ],
+          ),
+          child: Material(
+            borderRadius: BorderRadius.circular(14),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  colors:
+                      _showLists
+                          ? [accentGreen, accentGreen.withOpacity(0.8)]
+                          : [lightBlue, lightBlue.withOpacity(0.8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  setState(() {
+                    _showLists = !_showLists;
+                    if (_showLists) {
+                      _toggleAnimationController.reverse();
+                    } else {
+                      _toggleAnimationController.forward();
+                      _clearForms();
+                    }
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 20,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: Icon(
+                          _showLists
+                              ? Icons.add_circle_rounded
+                              : Icons.list_alt_rounded,
+                          color: Colors.white,
+                          size: 20,
+                          key: ValueKey(_showLists),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      _showLists ? 'Add New ${_currentTabIndex == 0 ? 'Organ' : 'Patient'}' 
-                                : 'View ${_currentTabIndex == 0 ? 'Organs' : 'Patients'} List',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(width: 10),
+                      Text(
+                        _showLists
+                            ? 'Add New ${_currentTabIndex == 0 ? 'Organ' : 'Patient'}'
+                            : 'View ${_currentTabIndex == 0 ? 'Organs' : 'Patients'} List',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-      
-      const SizedBox(width: 10), // Spacing between toggle and search button
-      
-      // Search button (now outside the toggle button)
-      Material(
-        borderRadius: BorderRadius.circular(14),
-        color: Colors.transparent,
-        child: InkWell(
+
+        const SizedBox(width: 10), // Spacing between toggle and search button
+        // Search button (now outside the toggle button)
+        Material(
           borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            setState(() {
-              _showSearch = !_showSearch;
-              if (_showSearch) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _focusNode.requestFocus();
-                });
-              } else {
-                _searchController.clear();
-                if (widget.onSearchChanged != null) {
-                  widget.onSearchChanged!('');
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (_showSearch) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _focusNode.requestFocus();
+                  });
+                } else {
+                  _searchController.clear();
+                  if (widget.onSearchChanged != null) {
+                    widget.onSearchChanged!('');
+                  }
                 }
-              }
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              _showSearch ? Icons.close : Icons.search,
-              color: Colors.white,
-              size: 20,
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                _showSearch ? Icons.close : Icons.search,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ),
-      ),
-    ],
-  );
-}
-/*
+      ],
+    );
+  }
+  /*
   Widget _buildToggleButton() {
     return Container(
       decoration: BoxDecoration(
@@ -533,7 +613,6 @@ Widget _buildToggleButton() {
       ),
     );
   }*/
-
 
   Widget _buildTabButton(String title, IconData icon, int index) {
     final isActive = _currentTabIndex == index;
@@ -619,17 +698,17 @@ Widget _buildToggleButton() {
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getOrganColor(organ['type']).withOpacity(0.1),
+                color: _getOrganColor(organ.bloodType).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                _getOrganIcon(organ['type']),
+                _getOrganIcon(organ.bloodType),
                 size: 24,
-                color: _getOrganColor(organ['type']),
+                color: _getOrganColor(organ.bloodType),
               ),
             ),
             title: Text(
-              '${organ['type']} - ${organ['id']}',
+              '${organ.coldIschemiaTimeHr} ',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -643,18 +722,32 @@ Widget _buildToggleButton() {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.bloodtype_rounded, size: 16, color: mediumGray),
+                      Icon(
+                        Icons.bloodtype_rounded,
+                        size: 16,
+                        color: mediumGray,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        organ['bloodType'],
-                        style: TextStyle(color: mediumGray, fontWeight: FontWeight.w500),
+                        organ.bloodType,
+                        style: TextStyle(
+                          color: mediumGray,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(width: 16),
-                      Icon(Icons.location_on_rounded, size: 16, color: mediumGray),
+                      Icon(
+                        Icons.location_on_rounded,
+                        size: 16,
+                        color: mediumGray,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        organ['location'],
-                        style: TextStyle(color: mediumGray, fontWeight: FontWeight.w500),
+                        organ.distanceKm.toString(),
+                        style: TextStyle(
+                          color: mediumGray,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -664,20 +757,25 @@ Widget _buildToggleButton() {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _getStatusColor(organ['status']).withOpacity(0.1),
+                color: _getStatusColor("No").withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _getStatusColor(organ['status']).withOpacity(0.3)),
+                border: Border.all(
+                  color: _getStatusColor(
+                    organ.isUsed.toString(),
+                  ).withOpacity(0.3),
+                ),
               ),
               child: Text(
-                organ['status'],
+                organ.isUsed.toString(),
                 style: TextStyle(
-                  color: _getStatusColor(organ['status']),
+                  color: _getStatusColor(organ.isUsed.toString()),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            onTap: () => _showOrganDetails(context, organ),
+            onTap:
+                () => _showOrganDetails(context, organ as Map<String, dynamic>),
           ),
         );
       },
@@ -710,17 +808,17 @@ Widget _buildToggleButton() {
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getPriorityColor(patient['priority']).withOpacity(0.1),
+                color: _getPriorityColor(patient.urgency.toString()).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 Icons.person_rounded,
                 size: 24,
-                color: _getPriorityColor(patient['priority']),
+                color: _getPriorityColor(patient.urgency.toString()),
               ),
             ),
             title: Text(
-              patient['name'],
+              "amine",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -734,24 +832,38 @@ Widget _buildToggleButton() {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.bloodtype_rounded, size: 16, color: mediumGray),
+                      Icon(
+                        Icons.bloodtype_rounded,
+                        size: 16,
+                        color: mediumGray,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        patient['bloodType'],
-                        style: TextStyle(color: mediumGray, fontWeight: FontWeight.w500),
+                        patient.recipientBloodType,
+                        style: TextStyle(
+                          color: mediumGray,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(width: 16),
-                      Icon(Icons.medical_services_rounded, size: 16, color: mediumGray),
+                      Icon(
+                        Icons.medical_services_rounded,
+                        size: 16,
+                        color: mediumGray,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        patient['organNeeded'],
-                        style: TextStyle(color: mediumGray, fontWeight: FontWeight.w500),
+                        "kidney",
+                        style: TextStyle(
+                          color: mediumGray,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Waiting since ${patient['waitingSince']}',
+                    'Waiting since ${patient.urgency}',
                     style: TextStyle(color: mediumGray, fontSize: 12),
                   ),
                 ],
@@ -760,24 +872,87 @@ Widget _buildToggleButton() {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _getPriorityColor(patient['priority']).withOpacity(0.1),
+                color: _getPriorityColor(patient.urgency.toString()).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _getPriorityColor(patient['priority']).withOpacity(0.3)),
+                border: Border.all(
+                  color: _getPriorityColor(
+                    patient.urgency.toString(),
+                  ).withOpacity(0.3),
+                ),
               ),
               child: Text(
-                patient['priority'],
+                patient.urgency.toString(),
                 style: TextStyle(
-                  color: _getPriorityColor(patient['priority']),
+                  color: _getPriorityColor(patient.urgency.toString()),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            onTap: () => _showPatientDetails(context, patient),
+            onTap: () => _showPatientDetails(context, patient as Patient),
           ),
         );
       },
     );
+  }
+
+  void _submitOrganForm() async {
+    try {
+      final organ = Organ(
+        donorAge: int.parse(_donorAgeController.text),
+        bloodType: _bloodTypeController.text.trim(),
+        hlaLocus:
+            '${_hla1Controller.text.trim()},${_hla2Controller.text.trim()},${_hla3Controller.text.trim()}',
+        distanceKm: int.parse(_distanceKmController.text),
+        //doctor: _doctorIdController.text.trim(),
+        coldIschemiaTimeHr:
+            _coldIschemiaTimeController.text.isNotEmpty
+                ? int.parse(_coldIschemiaTimeController.text)
+                : null,
+        storageTemperatureC:
+            _storageTempController.text.isNotEmpty
+                ? double.parse(_storageTempController.text)
+                : null,
+        preservationFluidType:
+            _preservationFluidController.text.trim().isNotEmpty
+                ? _preservationFluidController.text.trim()
+                : null,
+        warmIschemiaTimeMin:
+            _warmIschemiaTimeController.text.isNotEmpty
+                ? int.parse(_warmIschemiaTimeController.text)
+                : null,
+        perfusionFlowRateMlMin:
+            _perfusionFlowRateController.text.isNotEmpty
+                ? int.parse(_perfusionFlowRateController.text)
+                : null,
+        perfusionPressureMmHg:
+            _perfusionPressureController.text.isNotEmpty
+                ? int.parse(_perfusionPressureController.text)
+                : null,
+        lactateLevelMmolL:
+            _lactateLevelController.text.isNotEmpty
+                ? double.parse(_lactateLevelController.text)
+                : null,
+        timeToPerfusionStartMin:
+            _timeToPerfusionStartController.text.isNotEmpty
+                ? int.parse(_timeToPerfusionStartController.text)
+                : null,
+      );
+
+      final createdOrgan = await OrganService().createOrgan(organ);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Organ ${createdOrgan.id} created successfully!'),
+        ),
+      );
+
+      // Optionally: clear form or navigate
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
   }
 
   Widget _buildFormView() {
@@ -810,7 +985,9 @@ Widget _buildToggleButton() {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      _currentTabIndex == 0 ? Icons.medical_services_rounded : Icons.person_add_rounded,
+                      _currentTabIndex == 0
+                          ? Icons.medical_services_rounded
+                          : Icons.person_add_rounded,
                       color: primaryBlue,
                       size: 24,
                     ),
@@ -845,7 +1022,7 @@ Widget _buildToggleButton() {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveForm,
+                  onPressed: _submitOrganForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryBlue,
                     foregroundColor: Colors.white,
@@ -873,24 +1050,137 @@ Widget _buildToggleButton() {
     return Column(
       children: [
         _buildFormField(
-          controller: _organIdController,
-          label: 'Organ ID',
-          icon: Icons.qr_code_rounded,
-          hint: 'e.g., KID-001',
+          controller: _donorAgeController,
+          label: 'Donor Age',
+          icon: Icons.person,
+          hint: 'e.g., 32',
+          inputType: TextInputType.number,
         ),
         const SizedBox(height: 20),
         _buildFormField(
-          controller: _organTypeController,
-          label: 'Organ Type',
-          icon: Icons.medical_services_rounded,
-          hint: 'e.g., Kidney, Liver, Heart',
-        ),
-        const SizedBox(height: 20),
-        _buildFormField(
-          controller: _organBloodTypeController,
+          controller: _bloodTypeController,
           label: 'Blood Type',
-          icon: Icons.bloodtype_rounded,
-          hint: 'e.g., A+, O-, B+, AB-',
+          icon: Icons.bloodtype,
+          hint: 'e.g., O, A, B, AB',
+        ),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'HLA Locus',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _hla1Controller,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g., A2',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _hla2Controller,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g., B7',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _hla3Controller,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g., DR15',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _coldIschemiaTimeController,
+          label: 'Cold Ischemia Time (hr)',
+          icon: Icons.ac_unit,
+          hint: 'e.g., 4',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _storageTempController,
+          label: 'Storage Temp (°C)',
+          icon: Icons.thermostat_rounded,
+          hint: 'e.g., 4.0',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _preservationFluidController,
+          label: 'Preservation Fluid Type',
+          icon: Icons.science,
+          hint: 'e.g., UW, HTK',
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _warmIschemiaTimeController,
+          label: 'Warm Ischemia Time (min)',
+          icon: Icons.local_fire_department,
+          hint: 'e.g., 30',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _perfusionFlowRateController,
+          label: 'Perfusion Flow Rate (ml/min)',
+          icon: Icons.speed,
+          hint: 'e.g., 150',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _perfusionPressureController,
+          label: 'Perfusion Pressure (mmHg)',
+          icon: Icons.compress,
+          hint: 'e.g., 60',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _lactateLevelController,
+          label: 'Lactate Level (mmol/L)',
+          icon: Icons.analytics_outlined,
+          hint: 'e.g., 2.3',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _timeToPerfusionStartController,
+          label: 'Time to Perfusion Start (min)',
+          icon: Icons.timer_outlined,
+          hint: 'e.g., 45',
+          inputType: TextInputType.number,
+        ),
+        const SizedBox(height: 20),
+        _buildFormField(
+          controller: _distanceKmController,
+          label: 'Distance (km)',
+          icon: Icons.route_outlined,
+          hint: 'e.g., 50',
+          inputType: TextInputType.number,
         ),
       ],
     );
@@ -921,6 +1211,7 @@ Widget _buildToggleButton() {
     required String label,
     required IconData icon,
     required String hint,
+    TextInputType inputType = TextInputType.text, // Add this with default
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -954,7 +1245,10 @@ Widget _buildToggleButton() {
             ),
             filled: true,
             fillColor: lightGray,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
           ),
         ),
       ],
@@ -963,40 +1257,59 @@ Widget _buildToggleButton() {
 
   Color _getOrganColor(String type) {
     switch (type.toLowerCase()) {
-      case 'kidney': return const Color(0xFF8B5CF6);
-      case 'liver': return const Color(0xFFF59E0B);
-      case 'heart': return const Color(0xFFEF4444);
-      case 'lung': return const Color(0xFF06B6D4);
-      default: return primaryBlue;
+      case 'kidney':
+        return const Color(0xFF8B5CF6);
+      case 'liver':
+        return const Color(0xFFF59E0B);
+      case 'heart':
+        return const Color(0xFFEF4444);
+      case 'lung':
+        return const Color(0xFF06B6D4);
+      default:
+        return primaryBlue;
     }
   }
 
   IconData _getOrganIcon(String type) {
     switch (type.toLowerCase()) {
-      case 'kidney': return Icons.water_drop_rounded;
-      case 'liver': return Icons.restaurant_rounded;
-      case 'heart': return Icons.favorite_rounded;
-      case 'lung': return Icons.air_rounded;
-      default: return Icons.medical_services_rounded;
+      case 'kidney':
+        return Icons.water_drop_rounded;
+      case 'liver':
+        return Icons.restaurant_rounded;
+      case 'heart':
+        return Icons.favorite_rounded;
+      case 'lung':
+        return Icons.air_rounded;
+      default:
+        return Icons.medical_services_rounded;
     }
   }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'available': return accentGreen;
-      case 'reserved': return warningOrange;
-      case 'in transit': return lightBlue;
-      default: return mediumGray;
+      case 'available':
+        return accentGreen;
+      case 'reserved':
+        return warningOrange;
+      case 'in transit':
+        return lightBlue;
+      default:
+        return mediumGray;
     }
   }
 
   Color _getPriorityColor(String priority) {
     switch (priority.toLowerCase()) {
-      case 'critical': return const Color(0xFFDC2626);
-      case 'high': return warningOrange;
-      case 'medium': return lightBlue;
-      case 'low': return accentGreen;
-      default: return mediumGray;
+      case 'critical':
+        return const Color(0xFFDC2626);
+      case 'high':
+        return warningOrange;
+      case 'medium':
+        return lightBlue;
+      case 'low':
+        return accentGreen;
+      default:
+        return mediumGray;
     }
   }
 
@@ -1010,8 +1323,8 @@ Widget _buildToggleButton() {
 
   void _saveForm() {
     if (_currentTabIndex == 0) {
-      if (_organIdController.text.isEmpty || 
-          _organTypeController.text.isEmpty || 
+      if (_organIdController.text.isEmpty ||
+          _organTypeController.text.isEmpty ||
           _organBloodTypeController.text.isEmpty) {
         _showSnackBar('Please fill all fields', isError: true);
         return;
@@ -1026,13 +1339,13 @@ Widget _buildToggleButton() {
         'location': 'OR-${_organs.length + 1}',
       };
       setState(() {
-        _organs.add(newOrgan);
+        _organs.add(newOrgan as Organ);
         _showLists = true;
       });
       _showSnackBar('Organ added successfully', isError: false);
       _clearForms();
     } else {
-      if (_patientNameController.text.isEmpty || 
+      if (_patientNameController.text.isEmpty ||
           _patientBloodTypeController.text.isEmpty) {
         _showSnackBar('Please fill all fields', isError: true);
         return;
@@ -1047,7 +1360,7 @@ Widget _buildToggleButton() {
         'organNeeded': 'Kidney',
       };
       setState(() {
-        _patients.add(newPatient);
+        _patients.add(newPatient as Patient);
         _showLists = true;
       });
       _showSnackBar('Patient added successfully', isError: false);
@@ -1068,10 +1381,7 @@ Widget _buildToggleButton() {
             const SizedBox(width: 8),
             Text(
               message,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ],
         ),
@@ -1086,232 +1396,280 @@ Widget _buildToggleButton() {
   void _showOrganDetails(BuildContext context, Map<String, dynamic> organ) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      builder:
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _getOrganColor(organ['type']).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _getOrganIcon(organ['type']),
-                      color: _getOrganColor(organ['type']),
-                      size: 24,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _getOrganColor(organ['type']).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          _getOrganIcon(organ['type']),
+                          color: _getOrganColor(organ['type']),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Organ Details',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: darkGray,
+                              ),
+                            ),
+                            Text(
+                              organ['id'],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: mediumGray,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Organ Details',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: darkGray,
+                  const SizedBox(height: 24),
+                  _buildDetailRow(
+                    'Type',
+                    organ['type'],
+                    Icons.medical_services_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Blood Type',
+                    organ['bloodType'],
+                    Icons.bloodtype_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Status',
+                    organ['status'],
+                    Icons.info_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Location',
+                    organ['location'],
+                    Icons.location_on_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Donor',
+                    organ['donor'],
+                    Icons.person_rounded,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        Text(
-                          organ['id'],
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: mediumGray,
-                            fontWeight: FontWeight.w500,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            // Edit functionality would go here
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: const Text(
+                            'Edit',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              _buildDetailRow('Type', organ['type'], Icons.medical_services_rounded),
-              _buildDetailRow('Blood Type', organ['bloodType'], Icons.bloodtype_rounded),
-              _buildDetailRow('Status', organ['status'], Icons.info_rounded),
-              _buildDetailRow('Location', organ['location'], Icons.location_on_rounded),
-              _buildDetailRow('Donor', organ['donor'], Icons.person_rounded),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Edit functionality would go here
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        'Edit',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
-  void _showPatientDetails(BuildContext context, Map<String, dynamic> patient) {
+  void _showPatientDetails(BuildContext context, Patient patient) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      builder:
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _getPriorityColor(patient['priority']).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: _getPriorityColor(patient['priority']),
-                      size: 24,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _getPriorityColor(
+                            patient.urgency.toString(),
+                          ).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.person_rounded,
+                          color: _getPriorityColor(patient.urgency.toString()),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Patient Details',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: darkGray,
+                              ),
+                            ),
+                            Text(
+                             "amine",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: mediumGray,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Patient Details',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: darkGray,
+                  const SizedBox(height: 24),
+                  _buildDetailRow(
+                    'Patient ID',
+                    patient.id.toString(),
+                    Icons.badge_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Blood Type',
+                    patient.recipientBloodType,
+                    Icons.bloodtype_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Organ Needed',
+                    "kidney",
+                    Icons.medical_services_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Priority',
+                    patient.urgency.toString(),
+                    Icons.priority_high_rounded,
+                  ),
+                  _buildDetailRow(
+                    'Waiting Since',
+                    patient.urgency.toString(),
+                    Icons.calendar_today_rounded,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        Text(
-                          patient['name'],
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: mediumGray,
-                            fontWeight: FontWeight.w500,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            // Edit functionality would go here
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: const Text(
+                            'Edit',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              _buildDetailRow('Patient ID', patient['id'], Icons.badge_rounded),
-              _buildDetailRow('Blood Type', patient['bloodType'], Icons.bloodtype_rounded),
-              _buildDetailRow('Organ Needed', patient['organNeeded'], Icons.medical_services_rounded),
-              _buildDetailRow('Priority', patient['priority'], Icons.priority_high_rounded),
-              _buildDetailRow('Waiting Since', patient['waitingSince'], Icons.calendar_today_rounded),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Edit functionality would go here
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        'Edit',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -1353,29 +1711,31 @@ Widget _buildToggleButton() {
   void _logout() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-              foregroundColor: Colors.white,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('Logout'),
+            title: const Text('Logout'),
+            content: const Text('Are you sure you want to logout?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Logout'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
-

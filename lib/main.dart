@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'Login App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: '/',
+      initialRoute: '/matching-page',
       routes: {
         '/': (context) => const LoginScreen(),
         '/forgot-password': (context) => ForgetPasswordScreen(),

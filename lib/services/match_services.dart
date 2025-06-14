@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:webxhack/model/patient_model.dart';
 import 'package:webxhack/utils/constants.dart';
 import 'package:webxhack/model/match_model.dart';
 
@@ -68,25 +69,39 @@ class MatchService {
     }
   }
 
-  /// Get match by organ ID and last round
-  Future<Match> getMatchByOrganLastRound(String organId) async {
-    final response = await http.get(Uri.parse('$baseUrl/match/by-organ-last-round/$organId'));
+  Future<List<Patient>> getPatientsByOrganLastRound(String organId) async {
+  final response = await http.get(
+    Uri.parse('${baseUrl}match/by-organ-last-round/$organId'),
+  );
+  print("response body from patients by organ: ${response.body}");
 
-    if (response.statusCode == 200) {
-      return Match.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('No match found for this organ in the last round');
-    }
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final data = jsonDecode(response.body) as List;
+    final patients = data.map((e) => Patient.fromJson(e)).toList();
+
+    print("______________________________");
+    print("patients parsed: $patients");
+    print("______________________________");
+
+    return patients;
+  } else {
+    throw Exception('No patients found for this organ in the last round');
   }
+}
 
-  /// Submit a match (mark it as submitted)
-  Future<Match> submitMatch(String id) async {
-    final response = await http.patch(Uri.parse('$baseUrl/match/submit/$id'));
 
-    if (response.statusCode == 200) {
-      return Match.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to submit match');
-    }
+ /// Submit a match by organ and patient
+Future<Match> submitMatch(String organId, String patientId) async {
+  final response = await http.patch(
+    Uri.parse('${baseUrl}match/submit/$organId/$patientId'),
+  );
+
+  if (response.statusCode == 200||response.statusCode == 201) {
+    return Match.fromJson(jsonDecode(response.body));
+  } else {
+    print("response submit : ${response.body}");
+    throw Exception('Failed to submit match');
   }
+}
+
 }

@@ -31,7 +31,7 @@ class OrganService {
   }
 
   Future<Organ> getOrganById(String id) async {
-    final response = await http.get(Uri.parse('$baseUrl/$id'));
+    final response = await http.get(Uri.parse('$baseUrl$id'));
 
     if (response.statusCode == 200) {
       return Organ.fromJson(jsonDecode(response.body));
@@ -41,6 +41,7 @@ class OrganService {
   }
 
   Future<Organ> createOrgan(Organ organ) async {
+    organ.doctor="684caa9ab4609586aa9ec996";
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
@@ -50,6 +51,7 @@ class OrganService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Organ.fromJson(jsonDecode(response.body));
     } else {
+      print(response.body);
       throw Exception('Failed to create organ');
     }
   }
