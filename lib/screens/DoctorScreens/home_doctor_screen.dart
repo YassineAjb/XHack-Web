@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:webxhack/screens/DoctorScreens/council_screen.dart';
 import 'package:webxhack/screens/DoctorScreens/dashboard_screen.dart';
 
 class OrganMatchingPage extends StatefulWidget {
@@ -687,6 +688,22 @@ void _showPatientDetailsDialog(BuildContext context, Map<String, dynamic> patien
                 ),
                 child: const Text(
                   'Organs/Patiens',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MedicalCouncilScreen()));
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                child: const Text(
+                  'Medical council',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

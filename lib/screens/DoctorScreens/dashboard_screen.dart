@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:webxhack/screens/DoctorScreens/council_screen.dart';
 import 'package:webxhack/screens/DoctorScreens/home_doctor_screen.dart';
 
 class DashboardDoctor extends StatefulWidget {
@@ -198,7 +199,61 @@ class _StaffHomePageState extends State<DashboardDoctor> with TickerProviderStat
                   ),
                 ),
               ),
-              //const SizedBox(width: 8),
+              // TextButton(
+              //   onPressed: () {
+              //     Navigator.push(context, MaterialPageRoute(builder: (context) => MedicalCouncilScreen()));
+              //   },
+              //   style: TextButton.styleFrom(
+              //     foregroundColor: Colors.white,
+              //     padding: const EdgeInsets.symmetric(horizontal: 12),
+              //   ),
+              //   child: const Text(
+              //     'Medical council',
+              //     style: TextStyle(
+              //       fontSize: 14,
+              //       fontWeight: FontWeight.w600,
+              //     ),
+              //   ),
+              // ),
+TextButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MedicalCouncilScreen()),
+    );
+  },
+  style: TextButton.styleFrom(
+    foregroundColor: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+  ),
+  child: Row(
+    children: [
+      const Text(
+        'Medical council',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(width: 6),
+      Stack(
+        clipBehavior: Clip.none,
+        children: const [
+          Icon(Icons.notifications_none, size: 18),
+          Positioned(
+            top: -2,
+            right: -2,
+            child: CircleAvatar(
+              radius: 4,
+              backgroundColor: Colors.red,
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
               // Right side - Responsive spacer
             LayoutBuilder(
               builder: (context, constraints) {
@@ -421,118 +476,45 @@ Widget _buildToggleButton() {
           ),
         ),
       ),
-      
       const SizedBox(width: 10), // Spacing between toggle and search button
-      
-      // Search button (now outside the toggle button)
-      Material(
-        borderRadius: BorderRadius.circular(14),
-        color: Colors.transparent,
-        child: InkWell(
+      // Always-visible search field
+      Container(
+        width: 200, // Fixed width or use Flexible for dynamic width
+        height: 30, // Match your toggle button height
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
           borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            setState(() {
-              _showSearch = !_showSearch;
-              if (_showSearch) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _focusNode.requestFocus();
-                });
-              } else {
-                _searchController.clear();
-                if (widget.onSearchChanged != null) {
-                  widget.onSearchChanged!('');
-                }
-              }
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              _showSearch ? Icons.close : Icons.search,
-              color: Colors.white,
-              size: 20,
-            ),
+        ),
+        child: TextField(
+          controller: _searchController,
+          focusNode: _focusNode,
+          decoration: InputDecoration(
+            hintText: 'Search...',
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+            prefixIcon: Icon(Icons.search, color: const Color.fromARGB(255, 206, 46, 46), size: 20),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: Icon(Icons.close, color: const Color.fromARGB(255, 21, 3, 3), size: 20),
+                    onPressed: () {
+                      _searchController.clear();
+                      if (widget.onSearchChanged != null) {
+                        widget.onSearchChanged!('');
+                      }
+                    },
+                  )
+                : null,
           ),
+          style: const TextStyle(color: Color.fromARGB(255, 255, 0, 0)),
+          onChanged: widget.onSearchChanged ?? (value) {
+            // Handle search if no callback provided
+          },
         ),
       ),
     ],
   );
 }
-/*
-  Widget _buildToggleButton() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        borderRadius: BorderRadius.circular(14),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            gradient: LinearGradient(
-              colors: _showLists 
-                  ? [accentGreen, accentGreen.withOpacity(0.8)]
-                  : [lightBlue, lightBlue.withOpacity(0.8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () {
-              setState(() {
-                _showLists = !_showLists;
-                if (_showLists) {
-                  _toggleAnimationController.reverse();
-                } else {
-                  _toggleAnimationController.forward();
-                  _clearForms();
-                }
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      _showLists ? Icons.add_circle_rounded : Icons.list_alt_rounded,
-                      color: Colors.white,
-                      size: 20,
-                      key: ValueKey(_showLists),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    _showLists ? 'Add New ${_currentTabIndex == 0 ? 'Organ' : 'Patient'}' : 'View ${_currentTabIndex == 0 ? 'Organs' : 'Patients'} List',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }*/
+
 
 
   Widget _buildTabButton(String title, IconData icon, int index) {
